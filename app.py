@@ -10,6 +10,8 @@ app = dash.Dash(__name__, external_stylesheets = [dbc.themes.BOOTSTRAP])
 
 app.title = "My First Dash App"
 
+
+# App Layout
 app.layout = html.Div(
     [
         dbc.Card(
@@ -46,7 +48,13 @@ app.layout = html.Div(
             ],
             style={"width": "18rem"},
         )
-    ]
+    ],
+    style={
+        "justifyContent": "center",
+        "alignItems": "center",
+        "display":"flex",
+        "minHeight":"100vh",
+    },
 )
 
 from utilities import generateFibonacci, getFactorial, digitalRoot
