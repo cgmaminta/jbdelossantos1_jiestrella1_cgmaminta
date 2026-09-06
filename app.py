@@ -13,10 +13,21 @@ app.title = "My First Dash App"
 
 # App Layout
 app.layout = html.Div(
-    [
+    style={
+            "justifyContent": "center",
+            "alignItems": "center",
+            "display":"flex",
+            "minHeight":"100vh",
+            "gap":"2vw",
+            "backgroundColor":"#FFF1D1"
+        },
+    children=[
         dbc.Card(
             [
-                dbc.CardHeader("This is the header"),
+                dbc.CardHeader(
+                    ["This is the header"],
+                    style={"backgroundColor":"#DF301C", "color":"white"}
+                    ),
                 dbc.CardBody(
                     [
                         html.Div(
@@ -40,21 +51,35 @@ app.layout = html.Div(
                                 dbc.FormText("Select an operation"),
                             ]
                         ), 
-                        dbc.Button("Calculate!", id='btn_calculate', color='primary', n_clicks=0),
-                        html.Div(id='output_area')
+                        dbc.Button(
+                            "Calculate!", id='btn_calculate', color='primary', n_clicks=0,
+                            style={"backgroundColor":"#00B7CD"}
+                        ),
+                
                     ]
                 ),
                 dbc.CardFooter("This is the footer"),
             ],
-            style={"width": "18rem"},
+            style={"width": "30vw","height":"50vh"},
+        ),
+        dbc.Card(
+            [
+                dbc.CardHeader(["RESULT"],style={"backgroundColor":"#FF9100", "color":"white"}),
+                dbc.CardBody(
+                    [
+                    html.Div(id='output_area')
+                    ],
+                style = {
+                    "display":"flex",
+                    "justifyContent":"center",
+                    "alignItems":"center",
+                    "height":"100%"
+                }
+                )
+            ],
+            style={"width": "30vw","height":"40vh"}
         )
     ],
-    style={
-        "justifyContent": "center",
-        "alignItems": "center",
-        "display":"flex",
-        "minHeight":"100vh",
-    },
 )
 
 from utilities import generateFibonacci, getFactorial, digitalRoot
