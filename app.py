@@ -17,68 +17,109 @@ app.layout = html.Div(
             "justifyContent": "center",
             "alignItems": "center",
             "display":"flex",
+            "flexDirection": "column", # Makes header on top, cards underneath
             "minHeight":"100vh",
             "gap":"2vw",
-            "backgroundColor":"#FFF1D1"
+            "backgroundColor":"#FFF1D1",
+            "padding":"0 4vw"
         },
     children=[
-        dbc.Card(
-            [
-                dbc.CardHeader(
-                    ["This is the header"],
-                    style={"backgroundColor":"#DF301C", "color":"white"}
-                    ),
-                dbc.CardBody(
-                    [
-                        html.Div(
-                            [
-                                dbc.Label("Number"),
-                                dbc.Input(placeholder="Place a number here", type="text", id='num_input'),
-                                dbc.FormText("Negative numbers are not allowed."),
-                            ]
-                        ), 
-                        html.Div(
-                            [
-                                dbc.Label("Process"),
-                                dbc.Select(
-                                    id="process_select",
-                                    options=[
-                                        {"label": "Get Factorial", "value": 1},
-                                        {"label": "Generate Fibonacci", "value": 2},
-                                        {"label": "Get Digital Root", "value": 3}
-                                    ],
-                                ),
-                                dbc.FormText("Select an operation"),
-                            ]
-                        ), 
-                        dbc.Button(
-                            "Calculate!", id='btn_calculate', color='primary', n_clicks=0,
-                            style={"backgroundColor":"#00B7CD"}
-                        ),
-                
-                    ]
-                ),
-                dbc.CardFooter("This is the footer"),
-            ],
-            style={"width": "30vw","height":"50vh"},
+        html.Div(
+            "Amazing Calculator",
+            style={
+                "color":"#E20B0B", 
+                "fontSize":"50px", 
+                "fontWeight":"bold",
+                "fontFamily":"Helvetica, sans-serif",
+                "width":"92vw", # Adjusts the width of the text Div so it aligns with the total width of the cards
+                "textAlign":"left"}, 
         ),
-        dbc.Card(
-            [
-                dbc.CardHeader(["RESULT"],style={"backgroundColor":"#FF9100", "color":"white"}),
-                dbc.CardBody(
-                    [
-                    html.Div(id='output_area')
-                    ],
-                style = {
-                    "display":"flex",
-                    "justifyContent":"center",
-                    "alignItems":"center",
-                    "height":"100%"
-                }
-                )
-            ],
-            style={"width": "30vw","height":"40vh"}
-        )
+        html.Div(
+            "Select from three processes - getting its factorial, the numbers corresponding to the Fibonnaci Sequence, and its digital root.",
+            style={
+                "color":"#E20B0B", 
+                "fontSize":"15px", 
+                "fontStyle":"italic",
+                "fontFamily":"Helvetica, sans-serif",
+                "width":"92vw", # Adjusts the width of the text Div so it aligns with the total width of the cards
+                "textAlign":"left",
+                "marginTop":"-2rem"
+            },
+        ),
+        html.Div(
+            style={
+                "display":"flex",
+                "flexDirection":"row",
+                "gap":"2vw",
+            },
+            children=[
+                    dbc.Card(
+                        [
+                            dbc.CardHeader(
+                                ["Calculator"],
+                                style={"backgroundColor":"#E20B0B", 
+                                       "color":"white",
+                                       "fontWeight":"bold",
+                                       "fontFamily":"Helvetica, sans-serif",}
+                                ),
+                            dbc.CardBody(
+                                [
+                                    html.Div(
+                                        [
+                                            dbc.Label("Number"),
+                                            dbc.Input(placeholder="Place a number here", type="text", id='num_input'),
+                                            dbc.FormText("Negative numbers are not allowed."),
+                                        ]
+                                    ), 
+                                    html.Div(
+                                        [
+                                            dbc.Label("Process", style={"marginTop":"15px"}),
+                                            dbc.Select(
+                                                id="process_select",
+                                                options=[
+                                                    {"label": "Get Factorial", "value": 1},
+                                                    {"label": "Generate Fibonacci", "value": 2},
+                                                    {"label": "Get Digital Root", "value": 3}
+                                                ],
+                                            ),
+                                            dbc.FormText("Select an operation"),
+                                        ]
+                                    ), 
+                                    dbc.Button(
+                                        "Calculate!", id='btn_calculate', color='primary', n_clicks=0,
+                                        style={"backgroundColor":"#2700C4", "marginLeft":"332px"}
+                                    ),
+                            
+                                ]
+                            ),
+                            dbc.CardFooter("Made by Delos Santos, Estrella, and Maminta"),
+                        ],
+                        style={"width": "30vw","height":"52vh"},
+                    ),
+                    dbc.Card(
+                        [
+                            dbc.CardHeader(["Result"],
+                                           style={"backgroundColor":"#E20B0B", 
+                                                  "color":"white",
+                                                  "fontWeight":"bold",
+                                                  "fontFamily":"Helvetica, sans-serif"}),
+                            dbc.CardBody(
+                                [
+                                html.Div(id='output_area')
+                                ],
+                            style = {
+                                "display":"flex",
+                                "justifyContent":"center",
+                                "alignItems":"center",
+                                "height":"100%"
+                            }
+                            ),
+                            dbc.CardFooter("Hope you had fun calculating!")
+                        ],
+                        style={"width": "60vw","height":"52vh"}
+                    ),
+                ],
+        ),
     ],
 )
 
