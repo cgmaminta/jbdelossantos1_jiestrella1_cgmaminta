@@ -19,7 +19,10 @@ def generateFibonacci(num_elements):
 
 #Digital Root: Result from adding the digits of a number together repeatedly until the result is only one digit
 def digitalRoot(num):
-    result = 0
-    for i in str(int(num)):
-        result += int(i)
+    numr = num
+    while int(numr) > 9:
+        result = 0
+        for i in str(int(numr)):
+            result += int(i)
+        numr = result
     return result
