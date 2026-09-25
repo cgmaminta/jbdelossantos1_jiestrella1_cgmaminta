@@ -50,7 +50,8 @@ layout = html.Div(
         dbc.Modal( # Modal = dialog box; feedback for successful saving.
             [
                 dbc.ModalHeader(
-                    html.H4('Save Success')
+                    html.H4('Save Success',
+                    id = 'genreprofile_successmodalheader')
                 ),
                 dbc.ModalBody(
                     'Message here! Edit me please!'
@@ -105,7 +106,8 @@ def genreprofile_populategenres(pathname, urlsearch):
         Output('genreprofile_alert', 'children'),
         Output('genreprofile_alert', 'is_open'),
         # dbc.Modal Properties
-        Output('genreprofile_successmodal', 'is_open')
+        Output('genreprofile_successmodal', 'is_open'),
+        Output('genreprofile_successmodalheader', 'children')
     ],
     [
         # For buttons, the property n_clicks 
@@ -153,6 +155,7 @@ def genreprofile_saveprofile(submitbtn, title, urlsearch, genreid, delete):
                         VALUES (%s, %s)
                     '''
                     values = [title, False]
+                    msg = "Save Success"
                 elif create_mode == 'edit':
                     sql = '''
                         UPDATE genres 
@@ -163,6 +166,7 @@ def genreprofile_saveprofile(submitbtn, title, urlsearch, genreid, delete):
                             genre_id = %s
                     '''
                     values = [title, bool(delete), genreid]
+                    msg = "Update Success"
                 else:
                     raise PreventUpdate
                 
@@ -171,7 +175,7 @@ def genreprofile_saveprofile(submitbtn, title, urlsearch, genreid, delete):
                 # If this is successful, we want the successmodal to show
                 modal_open = True
 
-            return [alert_color, alert_text, alert_open, modal_open]
+            return [alert_color, alert_text, alert_open, modal_open, msg]
 
         else: 
             raise PreventUpdate

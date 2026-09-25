@@ -81,7 +81,8 @@ layout = html.Div(
         dbc.Modal( # Modal = dialog box; feedback for successful saving.
             [
                 dbc.ModalHeader(
-                    html.H4('Save Success')
+                    html.H4('Save Success',
+                    id = 'movieprofile_successmodalheader')
                 ),
                 dbc.ModalBody(
                     'Message here! Edit me please!'
@@ -155,7 +156,8 @@ def movieprofile_populategenres(pathname, urlsearch):
         Output('movieprofile_alert', 'children'),
         Output('movieprofile_alert', 'is_open'),
         # dbc.Modal Properties
-        Output('movieprofile_successmodal', 'is_open')
+        Output('movieprofile_successmodal', 'is_open'),
+        Output('movieprofile_successmodalheader', 'children')
     ],
     [
         # For buttons, the property n_clicks 
@@ -212,6 +214,7 @@ def movieprofile_saveprofile(submitbtn, title, genre, releasedate, urlsearch, mo
                         VALUES (%s, %s, %s, %s)
                     '''
                     values = [title, genre, releasedate, False]
+                    msg = "Save Success"
                 elif create_mode == 'edit':
                     sql = '''
                         UPDATE movies 
@@ -224,6 +227,7 @@ def movieprofile_saveprofile(submitbtn, title, genre, releasedate, urlsearch, mo
                             movie_id = %s
                     '''
                     values = [title, genre, releasedate, bool(delete), movieid]
+                    msg = "Update Success"
                 else:
                     raise PreventUpdate
                 
@@ -232,7 +236,7 @@ def movieprofile_saveprofile(submitbtn, title, genre, releasedate, urlsearch, mo
                 # If this is successful, we want the successmodal to show
                 modal_open = True
 
-            return [alert_color, alert_text, alert_open, modal_open]
+            return [alert_color, alert_text, alert_open, modal_open, msg]
 
         else: 
             raise PreventUpdate
@@ -277,3 +281,21 @@ def movieprofile_loadprofile(timestamp, movieid):
 
     else:
         raise PreventUpdate
+
+
+@app.callback(
+    [
+        Output('movieprofile_submit', 'color'),
+    ],
+    [
+        Input('movieprofile_deleteind', 'value')
+    ],
+    [
+        
+    ]
+)
+def movieprofile_deletwarn(delete):
+    if delete:
+        return ['danger']
+    else:
+        return ['primary']
