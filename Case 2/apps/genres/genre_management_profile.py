@@ -1,5 +1,6 @@
 import dash
 import dash_bootstrap_components as dbc
+import datetime as datetime
 from dash import Input, Output, State, dcc, html
 from dash.exceptions import PreventUpdate
 
@@ -177,11 +178,12 @@ def genreprofile_saveprofile(submitbtn, title, urlsearch, genreid, delete):
                         UPDATE genres 
                         SET 
                             genre_name = %s,
-                            genre_delete_ind = %s
+                            genre_delete_ind = %s,
+                            genre_modified_on = %s
                         WHERE
                             genre_id = %s
                     '''
-                    values = [title.strip(), bool(delete), genreid]
+                    values = [title.strip(), bool(delete), datetime.datetime.now(), genreid]
                     msg = "Update Success"
                 else:
                     raise PreventUpdate
@@ -190,7 +192,6 @@ def genreprofile_saveprofile(submitbtn, title, urlsearch, genreid, delete):
 
                 # If this is successful, we want the successmodal to show
                 modal_open = True
-
             return [alert_color, alert_text, alert_open, modal_open, msg]
 
         else: 
@@ -202,6 +203,7 @@ def genreprofile_saveprofile(submitbtn, title, urlsearch, genreid, delete):
 @app.callback(
     [
         Output('genreprofile_title', 'value'),
+        Output('genreprofile_deleteind', 'value'),
     ],
     [
         Input('genreprofile_genreid', 'modified_timestamp')
@@ -215,20 +217,20 @@ def genreprofile_loadprofile(timestamp, genreid):
 
         # Query from db
         sql = """
-            SELECT genre_name
+            SELECT genre_name, genre_delete_ind
             FROM genres
             WHERE genre_id = %s
         """
         values = [genreid]
-        col = ['genrename']
+        col = ['genrename', 'deleted']
 
         df = getDataFromDB(sql, values, col)
 
         genrename = df['genrename'][0]
-        # Our dropdown list has the genreids as values then it will 
-        # display the correspoinding labels
 
-        return [genrename]
+        deleted = [] if df['deleted'][0] == 0 else [1]
+        print('test')
+        return [genrename, deleted]
 
     else:
         raise PreventUpdate

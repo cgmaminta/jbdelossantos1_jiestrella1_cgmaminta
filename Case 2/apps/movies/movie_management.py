@@ -51,6 +51,16 @@ layout = html.Div(
                                     )
                                 ),
                                 html.Div(
+                                    [
+                                        dbc.Checklist(
+                                            id='movie_deleted',
+                                            options= [dict(value=1, label="Show Deleted")],
+                                            value=[] 
+                                        )
+                                    ], 
+                                    id='movie_deletediv'
+                                ),
+                                html.Div(
                                     "Table with movies will go here.",
                                     id='movie_movielist'
                                 )
@@ -70,18 +80,22 @@ layout = html.Div(
     [
         Input('url', 'pathname'),
         Input('movie_titlefilter', 'value'),
+        Input('movie_deleted', 'value'),
     ],
 )
-def updateRecordsTable(pathname, titlefilter):
+def updateRecordsTable(pathname, titlefilter, deleted):
     
     if pathname == '/movies/movie_management':
         sql = """ SELECT movie_name, genre_name, to_char(movie_release_date, 'DD Mon YYYY'),
             movie_id
         FROM movies m
             INNER JOIN genres g ON m.genre_id = g.genre_id
-        WHERE NOT movie_delete_ind
+        WHERE 1=1
         """
         val = []
+
+        if not deleted:
+            sql+= """ AND NOT movie_delete_ind """
 
         if titlefilter:
             sql += """ AND movie_name ilike %s"""
