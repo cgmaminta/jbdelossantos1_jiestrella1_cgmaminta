@@ -208,6 +208,21 @@ def movieprofile_saveprofile(submitbtn, title, genre, releasedate, urlsearch, mo
             else: # all inputs are valid
                 # Add the data into the db
                 if create_mode == 'add':
+                    title = title.strip()
+                    check_sql = '''
+                        SELECT movie_id 
+                        FROM movies 
+                        WHERE LOWER(movie_name) = LOWER(%s) 
+                          AND movie_delete_ind = False
+                    '''
+                    duplicate_df = getDataFromDB(check_sql, [title], ['movie_id'])
+
+                    if not duplicate_df.empty:
+                        alert_open = True
+                        alert_color = 'warning'
+                        alert_text = f"The movie '{title}' already exists."
+                        return [alert_color, alert_text, alert_open, modal_open, '']
+                    
                     sql = '''
                         INSERT INTO movies (movie_name, genre_id,
                             movie_release_date, movie_delete_ind)
@@ -226,7 +241,7 @@ def movieprofile_saveprofile(submitbtn, title, genre, releasedate, urlsearch, mo
                         WHERE
                             movie_id = %s
                     '''
-                    values = [title, genre, releasedate, bool(delete), movieid]
+                    values = [title.strip(), genre, releasedate, bool(delete), movieid]
                     msg = "Update Success"
                 else:
                     raise PreventUpdate
