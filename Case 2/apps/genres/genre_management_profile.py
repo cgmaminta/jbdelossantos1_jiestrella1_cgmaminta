@@ -150,7 +150,7 @@ def genreprofile_saveprofile(submitbtn, title, urlsearch, genreid, delete):
             else: # all inputs are valid
                 # Add the data into the db
                 if create_mode == 'add':
-                    title_clean = title.strip()
+                    title = title.strip()
                     check_sql = '''
                         SELECT genre_id 
                         FROM genres 
