@@ -249,6 +249,7 @@ def movieprofile_saveprofile(submitbtn, title, genre, releasedate, urlsearch, mo
         Output('movieprofile_title', 'value'),
         Output('movieprofile_genre', 'value'),
         Output('movieprofile_releasedate', 'date'),
+        Output('movieprofile_deleteind', 'value'),
     ],
     [
         Input('movieprofile_movieid', 'modified_timestamp')
@@ -262,12 +263,12 @@ def movieprofile_loadprofile(timestamp, movieid):
 
         # Query from db
         sql = """
-            SELECT movie_name, genre_id, movie_release_date
+            SELECT movie_name, genre_id, movie_release_date, movie_delete_ind
             FROM movies
             WHERE movie_id = %s
         """
         values = [movieid]
-        col = ['moviename', 'genreid', 'releasedate']
+        col = ['moviename', 'genreid', 'releasedate', 'deleted']
 
         df = getDataFromDB(sql, values, col)
 
@@ -276,8 +277,9 @@ def movieprofile_loadprofile(timestamp, movieid):
         # display the correspoinding labels
         genreid = int(df['genreid'][0])
         releasedate = df['releasedate'][0]
+        deleted = [] if df['deleted'][0] == 0 else [1]
 
-        return [moviename, genreid, releasedate]
+        return [moviename, genreid, releasedate, deleted]
 
     else:
         raise PreventUpdate
@@ -294,7 +296,8 @@ def movieprofile_loadprofile(timestamp, movieid):
         
     ]
 )
-def movieprofile_deletwarn(delete):
+def movieprofile_deletewarn(delete):
+
     if delete:
         return ['danger']
     else:
