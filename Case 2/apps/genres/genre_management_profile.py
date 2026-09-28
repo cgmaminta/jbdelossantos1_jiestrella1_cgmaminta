@@ -150,6 +150,22 @@ def genreprofile_saveprofile(submitbtn, title, urlsearch, genreid, delete):
             else: # all inputs are valid
                 # Add the data into the db
                 if create_mode == 'add':
+                    title_clean = title.strip()
+                    check_sql = '''
+                        SELECT genre_id 
+                        FROM genres 
+                        WHERE LOWER(genre_name) = LOWER(%s) 
+                            AND genre_delete_ind = False
+                        '''
+                    duplicate_df = getDataFromDB(check_sql,[title],['genre_id'])
+
+                    if not duplicate_df.empty:
+                        alert_open = True
+                        alert_color = 'warning'
+                        alert_text = f"The genre '{title}' already exists."
+                        return [alert_color,alert_text,alert_open,modal_open,'']
+
+                    # insert values when no duplicates and data is valid
                     sql = '''
                         INSERT INTO genres (genre_name,
                             genre_delete_ind)
@@ -167,7 +183,7 @@ def genreprofile_saveprofile(submitbtn, title, urlsearch, genreid, delete):
                         WHERE
                             genre_id = %s
                     '''
-                    values = [title, bool(delete), datetime.datetime.now(), genreid]
+                    values = [title.strip(), bool(delete), datetime.datetime.now(), genreid]
                     msg = "Update Success"
                 else:
                     raise PreventUpdate
