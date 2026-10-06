@@ -13,6 +13,8 @@ from apps.movies import movie_management as mm
 from apps.movies import movie_management_profile as mmp
 from apps.genres import genre_management as gm
 from apps.genres import genre_management_profile as gmp
+from apps.actors import actors_management, actors_management_profile
+
 
 
 # Importing your app variable from app.py so we can use it
@@ -67,8 +69,15 @@ def displaypage (pathname):
             
         elif pathname == '/genres/genre_management_profile':
             returnlayout = gmp.layout
+
         elif pathname == '/reports/report':
             returnlayout = r.layout
+
+        elif pathname == '/actors/actors_management':
+            returnlayout = actors_management.layout
+
+        elif pathname == '/actors/actors_management_profile':
+            returnlayout = actors_management_profile.layout   
         else:
             returnlayout = 'error404'
     
