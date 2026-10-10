@@ -61,6 +61,36 @@ layout = html.Div(
                     ],
                     className='mb-3'
                 ),
+                dbc.Row(
+                    [
+                        dbc.Label("Country of Origin", width=1),
+                        dbc.Col(
+                            dcc.Dropdown(
+                                id='movieprofile_country',
+                                placeholder="Select where the movie was produced.",
+                                searchable=True,
+                                options=[]
+                            ),
+                            width=5
+                        )
+                    ],
+                    className='mb-3'
+                ),
+                dbc.Row(
+                    [
+                        dbc.Label("Main Actor", width=1),
+                        dbc.Col(
+                            dcc.Dropdown(
+                                id='movieprofile_actor',
+                                placeholder="Select the main actor or actress.",
+                                searchable=True,
+                                options=[]
+                            ),
+                            width=5
+                        )
+                    ],
+                    className='mb-3'
+                ),
             ]
         ),
         html.Div(
@@ -101,9 +131,12 @@ layout = html.Div(
     ]
 )
 
+# DROPDOWNS
 @app.callback(
     [
         Output('movieprofile_genre', 'options'),
+        Output('movieprofile_country', 'options'),
+        Output('movieprofile_actor', 'options'),
         Output('movieprofile_movieid', 'data'),
         Output('movieprofile_deletediv', 'className')
     ],
@@ -116,7 +149,9 @@ layout = html.Div(
 )
 def movieprofile_populategenres(pathname, urlsearch):
     if pathname == '/movies/movie_management_profile':
-        sql = """
+
+        # Genre dropdown
+        genre_sql = """
         SELECT genre_name as label, genre_id as value
         FROM genres 
         WHERE genre_delete_ind = False
@@ -124,16 +159,40 @@ def movieprofile_populategenres(pathname, urlsearch):
         values = []
         cols = ['label', 'value']
 
-        df = getDataFromDB(sql, values, cols)
-        # The output must be a dictionary with the following structure
-        # options=[
-        #     {'label': "Factorial", 'value': 1},
-        #     {'label': "Palindrome Checker", 'value': 2},
-        #     {'label': "Greeter", 'value': 3},
-        # ]
-
+        df = getDataFromDB(genre_sql, values, cols)
+            # The output must be a dictionary with the following structure
+            # options=[
+            #     {'label': "Factorial", 'value': 1},
+            #     {'label': "Palindrome Checker", 'value': 2},
+            #     {'label': "Greeter", 'value': 3},
+            # ]
         genre_options = df.to_dict('records')
 
+        # Country dropdown
+        country_sql = """
+                SELECT country_name AS label,
+                country_id AS value
+                FROM countries
+                WHERE country_delete_ind = False
+                ORDER BY country_name ASC
+                """
+
+        country_df = getDataFromDB(country_sql, [], ['label','value'])
+        country_options = country_df.to_dict('records') if not country_df.empty else []
+
+        # Actors dropdown
+        actor_sql = """
+                SELECT CONCAT(actor_fname,' ', actor_lname) AS label,
+                actor_id AS value
+                FROM actors
+                WHERE actor_delete_ind = False
+                ORDER BY actor_lname, actor_fname ASC
+                """
+
+        actor_df = getDataFromDB(actor_sql, [], ['label','value'])
+        actor_options = actor_df.to_dict('records') if not actor_df.empty else []
+
+        # To check mode
         parsed = urlparse(urlsearch)
         create_mode = parse_qs(parsed.query)['mode'][0]
 
@@ -144,11 +203,12 @@ def movieprofile_populategenres(pathname, urlsearch):
             movieid = int(parse_qs(parsed.query)['id'][0])
             deletediv= ''
 
-        return [genre_options, movieid, deletediv]
+        return [genre_options, country_options, actor_options, movieid, deletediv]
     else:
         raise PreventUpdate
 
-        
+
+# SAVE PROFILE  
 @app.callback(
     [
         # dbc.Alert Properties
@@ -170,12 +230,14 @@ def movieprofile_populategenres(pathname, urlsearch):
         State('movieprofile_title', 'value'),
         State('movieprofile_genre', 'value'),
         State('movieprofile_releasedate', 'date'),
+        State('movieprofile_country','value'),
+        State('movieprofile_actor','value'),
         State('url', 'search'),
         State('movieprofile_movieid', 'data'),
         State('movieprofile_deleteind', 'value')
     ]
 )
-def movieprofile_saveprofile(submitbtn, title, genre, releasedate, urlsearch, movieid, delete):
+def movieprofile_saveprofile(submitbtn, title, genre, releasedate, country, actor, urlsearch, movieid, delete):
     ctx = dash.callback_context
     # The ctx filter -- ensures that only a change in url will activate this callback
     if ctx.triggered:
@@ -205,6 +267,15 @@ def movieprofile_saveprofile(submitbtn, title, genre, releasedate, urlsearch, mo
                 alert_open = True
                 alert_color = 'danger'
                 alert_text = 'Check your inputs. Please supply the movie release date.'
+            elif not country:
+                alert_open = True
+                alert_color = 'danger'
+                alert_text = 'Check your inputs. Please select the country of origin of the movie.'
+            elif not actor:
+                alert_open =  True
+                alert_color = 'danger'
+                alert_text = 'Check your inputs. Please select the main actor or actress of the movie.'
+
             else: # all inputs are valid
                 # Add the data into the db
                 if create_mode == 'add':
@@ -221,15 +292,18 @@ def movieprofile_saveprofile(submitbtn, title, genre, releasedate, urlsearch, mo
                         alert_open = True
                         alert_color = 'warning'
                         alert_text = f"The movie '{title}' already exists."
-                        return [alert_color, alert_text, alert_open, modal_open, '']
+                        return [alert_color, alert_text, alert_open, modal_open, msg]
                     
                     sql = '''
                         INSERT INTO movies (movie_name, genre_id,
-                            movie_release_date, movie_delete_ind)
-                        VALUES (%s, %s, %s, %s)
+                            movie_release_date, 
+                            country_id, actor_id, 
+                            movie_delete_ind)
+                        VALUES (%s, %s, %s, %s, %s, %s)
                     '''
-                    values = [title, genre, releasedate, False]
+                    values = [title, genre, releasedate, country, actor, False]
                     msg = "Save Success"
+
                 elif create_mode == 'edit':
                     sql = '''
                         UPDATE movies 
@@ -237,11 +311,13 @@ def movieprofile_saveprofile(submitbtn, title, genre, releasedate, urlsearch, mo
                             movie_name = %s,
                             genre_id = %s,
                             movie_release_date = %s,
+                            country_id = %s,
+                            actor_id = %s,
                             movie_delete_ind = %s
                         WHERE
                             movie_id = %s
                     '''
-                    values = [title.strip(), genre, releasedate, bool(delete), movieid]
+                    values = [title.strip(), genre, releasedate, country, actor, bool(delete), movieid]
                     msg = "Update Success"
                 else:
                     raise PreventUpdate
@@ -258,11 +334,14 @@ def movieprofile_saveprofile(submitbtn, title, genre, releasedate, urlsearch, mo
     else:
         raise PreventUpdate
 
+# Populating the movie details  
 @app.callback(
     [
         Output('movieprofile_title', 'value'),
         Output('movieprofile_genre', 'value'),
         Output('movieprofile_releasedate', 'date'),
+        Output('movieprofile_country','value'),
+        Output('movieprofile_actor','value'),
         Output('movieprofile_deleteind', 'value'),
     ],
     [
@@ -272,28 +351,37 @@ def movieprofile_saveprofile(submitbtn, title, genre, releasedate, urlsearch, mo
         State('movieprofile_movieid', 'data'),
     ]
 )
+
 def movieprofile_loadprofile(timestamp, movieid):
     if movieid: # check if movieid > 0
 
-        # Query from db
+        # Query from db 
+        # country_id because you can populate only the countries there while others have their own module that's connected
         sql = """
-            SELECT movie_name, genre_id, movie_release_date, movie_delete_ind
+            SELECT movie_name, 
+                genre_id, 
+                movie_release_date, 
+                country_id,     
+                actor_id,
+                movie_delete_ind
             FROM movies
             WHERE movie_id = %s
         """
         values = [movieid]
-        col = ['moviename', 'genreid', 'releasedate', 'deleted']
+        col = ['moviename', 'genreid', 'releasedate', 'country', 'actorid','deleted']
 
         df = getDataFromDB(sql, values, col)
 
         moviename = df['moviename'][0]
-        # Our dropdown list has the genreids as values then it will 
-        # display the correspoinding labels
+
+        # Our dropdown list has the genreids as values then it will display the corresponding labels
         genreid = int(df['genreid'][0])
         releasedate = df['releasedate'][0]
+        country = df['country'][0]
+        actor = int(df['actorid'][0]) # same as genre 
         deleted = [] if df['deleted'][0] == 0 else [1]
 
-        return [moviename, genreid, releasedate, deleted]
+        return [moviename, genreid, releasedate, country, actor, deleted]
 
     else:
         raise PreventUpdate
@@ -316,3 +404,6 @@ def movieprofile_deletewarn(delete):
         return ['danger']
     else:
         return ['primary']
+
+
+        

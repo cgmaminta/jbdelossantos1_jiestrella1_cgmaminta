@@ -161,7 +161,7 @@ def genreprofile_saveprofile(submitbtn, title, urlsearch, genreid, delete):
 
                     if not duplicate_df.empty:
                         alert_open = True
-                        alert_color = 'warning'
+                        alert_color = 'warning' 
                         alert_text = f"The genre '{title}' already exists."
                         return [alert_color,alert_text,alert_open,modal_open,'']
 

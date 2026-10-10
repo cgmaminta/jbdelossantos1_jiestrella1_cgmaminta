@@ -86,22 +86,30 @@ layout = html.Div(
 def updateRecordsTable(pathname, titlefilter, deleted):
     
     if pathname == '/movies/movie_management':
-        sql = """ SELECT movie_name, genre_name, to_char(movie_release_date, 'DD Mon YYYY'),
+        sql = """ SELECT 
+            m.movie_name, 
+            g.genre_name, 
+            c.country_name,
+            CONCAT(a.actor_fname,' ', a.actor_lname) AS actor_name,
+            to_char(movie_release_date, 'DD Mon YYYY'),
+            EXTRACT(YEAR FROM AGE(CURRENT_DATE, m.movie_release_date))::INT AS movie_age,
             movie_id
         FROM movies m
             INNER JOIN genres g ON m.genre_id = g.genre_id
+            LEFT JOIN countries c ON m.country_id = c.country_id
+            LEFT JOIN actors a ON m.actor_id = a.actor_id
         WHERE 1=1
         """
         val = []
 
         if not deleted:
-            sql+= """ AND NOT movie_delete_ind """
+            sql+= """ AND NOT m.movie_delete_ind """
 
         if titlefilter:
-            sql += """ AND movie_name ilike %s"""
+            sql += """ AND m.movie_name ilike %s"""
             val += [f'%{titlefilter}%']
 
-        col = ["Movie Title", "Genre", "Release Date", 'id']
+        col = ["Movie Title", "Genre", "Country of Origin", "Lead Actor","Release Date", "Movie Age (Years)", 'id']
 
         df = getDataFromDB(sql, val, col)
 
@@ -120,7 +128,7 @@ def updateRecordsTable(pathname, titlefilter, deleted):
         df['Action'] = editButtons
         
         # we don't want to display the 'id' column -- let's exclude it
-        df = df[['Movie Title', 'Genre', 'Release Date', 'Action']]
+        df = df[['Movie Title', 'Genre', "Country of Origin", "Lead Actor",'Release Date', "Movie Age (Years)", 'Action']]
 
         movie_table = dbc.Table.from_dataframe(df, striped=True, bordered=True,
             hover=True, size='sm')
