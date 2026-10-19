@@ -12,6 +12,7 @@ from apps import home, signup, login ##update
 from apps.movies import movie_management, movie_management_profile
 from apps.genres import genre_management, genre_management_profile
 from apps.reports import report
+from apps.actors import actors_management, actors_management_profile
 
 CONTENT_STYLE = {
     "margin-top": "1em",
@@ -106,6 +107,10 @@ def displaypage (pathname,
             elif pathname == '/movies/movie_management_profile':
                 returnlayout = movie_management_profile.layout
 
+            elif pathname == '/actors/actors_management':
+                returnlayout = actors_management.layout
+            elif pathname == '/actors/actors_management_profile':
+                returnlayout = actors_management_profile.layout
             else:
                 returnlayout = '404: request not found'
                 

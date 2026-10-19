@@ -414,12 +414,19 @@ def movieprofile_loadprofile(timestamp, movieid):
         moviename = df['moviename'][0]
 
         # Our dropdown list has the genreids as values then it will display the corresponding labels
-        genreid = int(df['genreid'][0])
+        '''genreid = int(df['genreid'][0])
         releasedate = df['releasedate'][0]
         country = df['country'][0]
         actor = int(df['actorid'][0]) # same as genre 
         language = int(df['language'][0])
-        deleted = [] if df['deleted'][0] == 0 else [1]
+        deleted = [] if df['deleted'][0] == 0 else [1]'''
+        
+        genreid = int(df['genreid'][0]) if pd.notna(df['genreid'][0]) else None
+        releasedate = df['releasedate'][0]
+        country = int(df['country'][0]) if pd.notna(df['country'][0]) else None
+        actor = int(df['actorid'][0]) if pd.notna(df['actorid'][0]) else None
+        language = int(df['language'][0]) if pd.notna(df['language'][0]) else None
+        deleted = [1] if pd.notna(df['deleted'][0]) and df['deleted'][0] else []
 
         return [moviename, genreid, releasedate, country, actor, language, deleted]
 
