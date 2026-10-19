@@ -4,10 +4,10 @@ import pandas as pd
 def getdblocation():
     db = psycopg2.connect(
         host='localhost', 
-        database='ie172db', 
+        database='ie172sampledb', 
         user='postgres', 
         port=5432, 
-        password='caramaminta24', 
+        password='ie172', 
     )
 
     return db

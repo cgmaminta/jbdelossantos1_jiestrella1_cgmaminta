@@ -91,6 +91,7 @@ def updateRecordsTable(pathname, titlefilter, deleted):
             g.genre_name, 
             c.country_name,
             CONCAT(a.actor_fname,' ', a.actor_lname) AS actor_name,
+            l.language_name,
             to_char(movie_release_date, 'DD Mon YYYY'),
             EXTRACT(YEAR FROM AGE(CURRENT_DATE, m.movie_release_date))::INT AS movie_age,
             movie_id
@@ -98,6 +99,7 @@ def updateRecordsTable(pathname, titlefilter, deleted):
             INNER JOIN genres g ON m.genre_id = g.genre_id
             LEFT JOIN countries c ON m.country_id = c.country_id
             LEFT JOIN actors a ON m.actor_id = a.actor_id
+            LEFT JOIN languages l ON m.language_id = l.language_id
         WHERE 1=1
         """
         val = []
@@ -109,7 +111,7 @@ def updateRecordsTable(pathname, titlefilter, deleted):
             sql += """ AND m.movie_name ilike %s"""
             val += [f'%{titlefilter}%']
 
-        col = ["Movie Title", "Genre", "Country of Origin", "Lead Actor","Release Date", "Movie Age (Years)", 'id']
+        col = ["Movie Title", "Genre", "Country of Origin", "Lead Actor", "Language", "Release Date", "Movie Age (Years)", 'id']
 
         df = getDataFromDB(sql, val, col)
 
@@ -128,7 +130,7 @@ def updateRecordsTable(pathname, titlefilter, deleted):
         df['Action'] = editButtons
         
         # we don't want to display the 'id' column -- let's exclude it
-        df = df[['Movie Title', 'Genre', "Country of Origin", "Lead Actor",'Release Date', "Movie Age (Years)", 'Action']]
+        df = df[['Movie Title', 'Genre', "Country of Origin", "Lead Actor", "Language",'Release Date', "Movie Age (Years)", 'Action']]
 
         movie_table = dbc.Table.from_dataframe(df, striped=True, bordered=True,
             hover=True, size='sm')

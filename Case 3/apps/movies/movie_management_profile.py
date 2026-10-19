@@ -91,6 +91,21 @@ layout = html.Div(
                     ],
                     className='mb-3'
                 ),
+                dbc.Row(
+                    [
+                        dbc.Label("Primary Language", width=1),
+                        dbc.Col(
+                            dcc.Dropdown(
+                                id='movieprofile_language',
+                                placeholder="Select the primary language of the movie.",
+                                searchable=True,
+                                options=[]
+                            ),
+                            width=5
+                        )
+                    ],
+                    className='mb-3'
+                ),
             ]
         ),
         html.Div(
@@ -137,6 +152,7 @@ layout = html.Div(
         Output('movieprofile_genre', 'options'),
         Output('movieprofile_country', 'options'),
         Output('movieprofile_actor', 'options'),
+        Output('movieprofile_language', 'options'),
         Output('movieprofile_movieid', 'data'),
         Output('movieprofile_deletediv', 'className')
     ],
@@ -192,6 +208,17 @@ def movieprofile_populategenres(pathname, urlsearch):
         actor_df = getDataFromDB(actor_sql, [], ['label','value'])
         actor_options = actor_df.to_dict('records') if not actor_df.empty else []
 
+        # Language dropdown
+        language_sql = """
+                SELECT language_name AS label,
+                language_id AS value
+                FROM languages
+                WHERE language_delete_ind = False
+                ORDER BY language_name ASC
+                """
+        language_df = getDataFromDB(language_sql, [], ['label','value'])
+        language_options = language_df.to_dict('records') if not language_df.empty else []           
+
         # To check mode
         parsed = urlparse(urlsearch)
         create_mode = parse_qs(parsed.query)['mode'][0]
@@ -203,7 +230,7 @@ def movieprofile_populategenres(pathname, urlsearch):
             movieid = int(parse_qs(parsed.query)['id'][0])
             deletediv= ''
 
-        return [genre_options, country_options, actor_options, movieid, deletediv]
+        return [genre_options, country_options, actor_options, language_options, movieid, deletediv]
     else:
         raise PreventUpdate
 
@@ -232,12 +259,13 @@ def movieprofile_populategenres(pathname, urlsearch):
         State('movieprofile_releasedate', 'date'),
         State('movieprofile_country','value'),
         State('movieprofile_actor','value'),
+        State('movieprofile_language','value'),
         State('url', 'search'),
         State('movieprofile_movieid', 'data'),
         State('movieprofile_deleteind', 'value')
     ]
 )
-def movieprofile_saveprofile(submitbtn, title, genre, releasedate, country, actor, urlsearch, movieid, delete):
+def movieprofile_saveprofile(submitbtn, title, genre, releasedate, country, actor, language, urlsearch, movieid, delete):
     ctx = dash.callback_context
     # The ctx filter -- ensures that only a change in url will activate this callback
     if ctx.triggered:
@@ -275,6 +303,10 @@ def movieprofile_saveprofile(submitbtn, title, genre, releasedate, country, acto
                 alert_open =  True
                 alert_color = 'danger'
                 alert_text = 'Check your inputs. Please select the main actor or actress of the movie.'
+            elif not language:
+                alert_open =  True
+                alert_color = 'danger'
+                alert_text = 'Check your inputs. Please select the primary language of the movie.'
 
             else: # all inputs are valid
                 # Add the data into the db
@@ -297,11 +329,13 @@ def movieprofile_saveprofile(submitbtn, title, genre, releasedate, country, acto
                     sql = '''
                         INSERT INTO movies (movie_name, genre_id,
                             movie_release_date, 
-                            country_id, actor_id, 
+                            country_id, 
+                            actor_id, 
+                            language_id,
                             movie_delete_ind)
                         VALUES (%s, %s, %s, %s, %s, %s)
                     '''
-                    values = [title, genre, releasedate, country, actor, False]
+                    values = [title, genre, releasedate, country, actor, language, False]
                     msg = "Save Success"
 
                 elif create_mode == 'edit':
@@ -313,11 +347,12 @@ def movieprofile_saveprofile(submitbtn, title, genre, releasedate, country, acto
                             movie_release_date = %s,
                             country_id = %s,
                             actor_id = %s,
+                            language_id = %s,
                             movie_delete_ind = %s
                         WHERE
                             movie_id = %s
                     '''
-                    values = [title.strip(), genre, releasedate, country, actor, bool(delete), movieid]
+                    values = [title.strip(), genre, releasedate, country, actor, language, bool(delete), movieid]
                     msg = "Update Success"
                 else:
                     raise PreventUpdate
@@ -342,6 +377,7 @@ def movieprofile_saveprofile(submitbtn, title, genre, releasedate, country, acto
         Output('movieprofile_releasedate', 'date'),
         Output('movieprofile_country','value'),
         Output('movieprofile_actor','value'),
+        Output('movieprofile_language','value'),
         Output('movieprofile_deleteind', 'value'),
     ],
     [
@@ -363,12 +399,13 @@ def movieprofile_loadprofile(timestamp, movieid):
                 movie_release_date, 
                 country_id,     
                 actor_id,
+                language_id,
                 movie_delete_ind
             FROM movies
             WHERE movie_id = %s
         """
         values = [movieid]
-        col = ['moviename', 'genreid', 'releasedate', 'country', 'actorid','deleted']
+        col = ['moviename', 'genreid', 'releasedate', 'country', 'actorid', 'language', 'deleted']
 
         df = getDataFromDB(sql, values, col)
 
@@ -379,9 +416,10 @@ def movieprofile_loadprofile(timestamp, movieid):
         releasedate = df['releasedate'][0]
         country = df['country'][0]
         actor = int(df['actorid'][0]) # same as genre 
+        language = int(df['language'][0])
         deleted = [] if df['deleted'][0] == 0 else [1]
 
-        return [moviename, genreid, releasedate, country, actor, deleted]
+        return [moviename, genreid, releasedate, country, actor, language, deleted]
 
     else:
         raise PreventUpdate

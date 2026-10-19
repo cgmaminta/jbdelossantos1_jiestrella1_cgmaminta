@@ -57,6 +57,48 @@ layout = html.Div(
                                 html.H5('Number of movies and actors per genre and country.'),
                                 html.Div(
                                     id='report_movielist'
+                                ),
+                                html.Hr(),
+                                html.H5('Number of movies and actors per genre and language.'),
+                                dbc.Form(
+                                [
+                                    dbc.Row(
+                                        [
+                                            dbc.Label("Genre", width=1),
+                                            dbc.Col(
+                                                dcc.Dropdown(
+                                                    id='report_genrefilter',
+                                                    placeholder='Select Genre',
+                                                    searchable=True,
+                                                    options = [],
+                                                    multi = True
+                                                ),
+                                                width=5
+                                            )
+                                        ],
+                                            className='mb-3'
+                                            ),
+                                    dbc.Row(
+                                        [
+                                        dbc.Label("Language", width=1),
+                                        dbc.Col(
+                                            dcc.Dropdown(
+                                                id='report_languagefilter',
+                                                placeholder='Select Language',
+                                                searchable=True,
+                                                options = [],
+                                                multi = True
+                                            ),
+                                            width=5
+                                        )
+                                        ],
+                                        className='mb-3'
+                                    ),
+                                ]
+                                ),
+                                
+                                html.Div(
+                                    id='report_movielist2'
                                 )
                             ]
                         )
@@ -72,6 +114,8 @@ layout = html.Div(
 @app.callback(
     [
         Output('report_countryfilter', 'options'),
+        Output('report_genrefilter', 'options'),
+        Output('report_languagefilter', 'options'),
         
     ],
     [
@@ -88,7 +132,27 @@ def moviehome_loadmovielist(pathname):
         columns = ['label', 'value']
         values = [False]
         dfsql = db.getDataFromDB(sql, values, columns)
-        return [dfsql.to_dict('records')]
+
+        gsql = """ SELECT genre_name as label, 
+                            genre_id as value
+                        FROM genres
+                        WHERE genre_delete_ind = %s
+                    """
+        gcolumns = ['label', 'value']
+        gvalues = [False]
+        gdfsql = db.getDataFromDB(gsql, gvalues, gcolumns)
+                
+
+        lsql = """ SELECT language_name as label, 
+                                    language_id as value
+                                FROM languages
+                                WHERE language_delete_ind = %s
+                            """
+        lcolumns = ['label', 'value']
+        lvalues = [False]
+        ldfsql = db.getDataFromDB(lsql, lvalues, lcolumns)
+        
+        return [dfsql.to_dict('records'), gdfsql.to_dict('records'), ldfsql.to_dict('records')]
     
     else:
         raise PreventUpdate
@@ -182,5 +246,55 @@ def moviehome_loadmovielist(pathname, filter_country):
             return [table, figure3]
         else:
             return [table, go.Figure()]
+    else:
+        raise PreventUpdate
+
+#callback for table 2
+@app.callback(
+    [
+        Output('report_movielist2', 'children'),
+    ],
+    [
+        Input('url', 'pathname'),
+        Input('report_genrefilter', 'value'),
+        Input('report_languagefilter', 'value'),
+    ]
+)
+def loadmoviereport2(pathname, filter_genre, filter_language):
+    if pathname == '/reports/report':
+        sql = """ SELECT g.genre_id,count(movie_name), genre_name, language_name
+                FROM movies m
+                    INNER JOIN genres g ON m.genre_id = g.genre_id
+                    INNER JOIN languages l ON m.language_id = l.language_id
+                WHERE movie_delete_ind = false
+            """
+        values = []
+        
+        if filter_genre:
+            sql += " AND g.genre_id IN %s"
+            values += [tuple(filter_genre)]
+
+        if filter_language:
+            sql += " AND l.language_id IN %s"
+            values += [tuple(filter_language)]
+        
+        sql += """ Group By g.genre_id, genre_name, language_name
+                    Order By genre_name, language_name
+        """
+
+        cols = ['ID', 'Number of Movies', 'Genre', 'Language']
+
+        df = db.getDataFromDB(sql, values, cols)
+
+        
+        df = df[['Language','Genre','Number of Movies']]
+
+        table = dbc.Table.from_dataframe(df, striped=True, bordered=True,
+                hover=True, size='sm')
+        
+        if df.shape[0]:
+            return [table]
+        else:
+            return [table]
     else:
         raise PreventUpdate
