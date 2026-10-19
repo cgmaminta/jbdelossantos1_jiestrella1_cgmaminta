@@ -29,6 +29,7 @@ navbar = dbc.Navbar(
             dbc.NavLink("Genres", href="/genres/genre_management", style=navlink_style),
             dbc.NavLink("Actors", href="/actors/actors_management", style = navlink_style),
             dbc.NavLink("Report", href="/reports/report", style=navlink_style),
+            dbc.NavLink("Logout", href="/logout", style=navlink_style),
         ], className='m-0 justify-content-start'
         
     ),
