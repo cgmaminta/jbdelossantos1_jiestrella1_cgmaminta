@@ -131,7 +131,7 @@ layout = html.Div(
                     id = 'movieprofile_successmodalheader')
                 ),
                 dbc.ModalBody(
-                    'Edit Success!'
+                    'Save Success!'
                 ),
                 dbc.ModalFooter(
                     dbc.Button(
@@ -338,7 +338,7 @@ def movieprofile_saveprofile(submitbtn, title, genre, releasedate, country, acto
                         VALUES (%s, %s, %s, %s, %s, %s, %s)
                     '''
                     values = [title, genre, releasedate, country, actor, language, False]
-                    msg = "Save Success"
+                    msg = "Save Success!"
 
                 elif create_mode == 'edit':
                     sql = '''
@@ -355,7 +355,7 @@ def movieprofile_saveprofile(submitbtn, title, genre, releasedate, country, acto
                             movie_id = %s
                     '''
                     values = [title.strip(), genre, releasedate, country, actor, language, bool(delete), movieid]
-                    msg = "Update Success"
+                    msg = "Update Success!"
                 else:
                     raise PreventUpdate
                 
