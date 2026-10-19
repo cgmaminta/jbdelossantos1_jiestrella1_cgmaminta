@@ -1,3 +1,4 @@
+import pandas as pd
 import dash
 import dash_bootstrap_components as dbc
 from dash import Input, Output, State, dcc, html
@@ -130,7 +131,7 @@ layout = html.Div(
                     id = 'movieprofile_successmodalheader')
                 ),
                 dbc.ModalBody(
-                    'Message here! Edit me please!'
+                    'Edit Success!'
                 ),
                 dbc.ModalFooter(
                     dbc.Button(
@@ -281,6 +282,7 @@ def movieprofile_saveprofile(submitbtn, title, genre, releasedate, country, acto
             modal_open = False
             alert_color = ''
             alert_text = ''
+            msg = ''
 
             # We need to check inputs
             if not title: # If title is blank, not title = True
@@ -333,7 +335,7 @@ def movieprofile_saveprofile(submitbtn, title, genre, releasedate, country, acto
                             actor_id, 
                             language_id,
                             movie_delete_ind)
-                        VALUES (%s, %s, %s, %s, %s, %s)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
                     '''
                     values = [title, genre, releasedate, country, actor, language, False]
                     msg = "Save Success"
